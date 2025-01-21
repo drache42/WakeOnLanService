@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <style>
+        .spinner {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+
+        .error-x {
+            display: none;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .error-x::before, .error-x::after {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 16px;
+            background-color: red;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%) rotate(45deg);
+        }
+
+        .error-x::after {
+            transform: translateY(-50%) rotate(-45deg);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .container {
+            text-align: center;
+            margin-top: 20%;
+        }
+
+        .attempts {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+
+        .debug {
+            margin-top: 10px;
+            font-size: 1em;
+            color: red;
+        }
+
+        .error {
+            margin-top: 10px;
+            font-size: 1em;
+            color: red;
+        }
+    </style>
+    <script>
+        let intervalId;
+
+        async function checkUrl() {
+            try {
+                const response = await fetch('/check_url');
+                const data = await response.json();
+                document.getElementById('attempts').innerText = `Attempts: ${data.attempts}`;
+                if (data.status === "available") {
+                    window.location.href = data.url;
+                } else if (data.status === "debug") {
+                    document.getElementById('debug').innerText = "The application is in debug mode.";
+                } else if (data.status === "error") {
+                    clearInterval(intervalId);
+                    document.getElementById('error').innerText = "Open-WebUI is down.";
+                    document.querySelector('.spinner').style.display = 'none';
+                    document.querySelector('.error-x').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error checking URL:', error);
+            }
+        }
+
+        intervalId = setInterval(checkUrl, 5000); // Check URL every 5 seconds
+
+        window.onload = () => {
+            checkUrl();
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Loading, please wait...</h1>
+        <div class="spinner"></div>
+        <div class="error-x"></div>
+        <div class="attempts" id="attempts">Attempts: 1</div>
+        <div class="debug" id="debug"></div>
+        <div class="error" id="error"></div>
+    </div>
+</body>
+</html>
