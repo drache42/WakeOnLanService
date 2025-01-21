@@ -2,26 +2,43 @@
 
 ## Build Instructions
 
+### Building
+
 To build the Docker image for this application, navigate to the root directory of the project and run the following command:
 
 ```sh
-docker build -t wakeonlanservice -f docker/Dockerfile .
+docker build -t drache42/wakeonlanservice:latest -f docker/Dockerfile .
 ```
 
+### Running
+
 To run the the project locally, run the following command:
+
 ```sh
-docker run -it --rm -p 5000:5000 wakeonlanservice
+docker run -it --rm -p 5000:5000 drache42/wakeonlanservice:latest
+```
+
+### Pushing
+
+To push to my private repo after the build command, run the following commands:
+
+```sh
+docker login
+docker push drache42/wakeonlanservice:latest
 ```
 
 ## Development Instructions
+
 To run the Flask app in development mode, follow these steps:
 
 1. Ensure all dependencies are installed:
+
 ```sh
 pip install -r requirements.txt
 ```
 
 2. Set environment variables and run the Flask app:
+
 ```
 $env:FLASK_APP = "app.py"
 $env:FLASK_ENV = "development"

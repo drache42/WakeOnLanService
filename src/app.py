@@ -1,37 +1,59 @@
-from flask import Flask, jsonify, render_template, redirect, url_for
+import logging
+from flask import Flask, jsonify, render_template, request
 import requests
 from wakeonlan import send_magic_packet
-import time
 import os
+import re
 
 app = Flask(__name__)
 
+# Set up logging
+logging.basicConfig(level=logging.DEBUG if os.getenv("FLASK_DEBUG", "false").lower() == "true" else logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Check if the app is in debug mode based on an environment variable
 DEBUG_MODE = os.getenv("FLASK_DEBUG", "false").lower() == "true"
-print(f"DEBUG_MODE: {DEBUG_MODE}")  # Log the debug mode status.
-print(f"App debug mode is {'on' if app.debug else 'off'}")
+logger.info(f"DEBUG_MODE: {DEBUG_MODE}")  # Log the debug mode status.
+logger.info(f"App debug mode is {'on' if app.debug else 'off'}")
+
+# Get MAC address and URL from environment variables
+MAC_ADDRESS = os.getenv("MAC_ADDRESS")
+URL = os.getenv("URL")
+
+# Validate MAC address
+if not MAC_ADDRESS or not re.match(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$', MAC_ADDRESS):
+    logger.error("Invalid or missing MAC_ADDRESS environment variable")
+    raise ValueError("Invalid or missing MAC_ADDRESS environment variable")
+
+# Validate URL
+if not URL or not re.match(r'^(http|https)://', URL):
+    logger.error("Invalid or missing URL environment variable")
+    raise ValueError("Invalid or missing URL environment variable")
 
 global attempts
 attempts = 0
 
+@app.before_request
+def log_request_info():
+    logger.info(f"Received {request.method} request for {request.url}")
+
 @app.route("/check_url")
 def check_url_status():
-    url = "http://192.168.1.109:3000"
     global attempts
     attempts += 1
     
     if not DEBUG_MODE:
-        send_magic_packet("18-C0-4D-07-5B-2D")
+        logger.info(f"Sending magic packet to {MAC_ADDRESS}")
+        send_magic_packet(MAC_ADDRESS)
         
-    
-    if(app.debug):
-        if(attempts >= 5):
+    if app.debug:
+        if attempts >= 5:
             status = "available"
         else:
             status = "debug"
-    elif check_url(url):
+    elif check_url(URL):
         status = "available"
-    elif(attempts >= 10):
+    elif attempts >= 10:
         status = "error"
     else:
         status = "unavailable"
@@ -40,32 +62,22 @@ def check_url_status():
         {
             "status": status,
             "attempts": attempts,
-            "url": url
+            "url": URL
         })
 
 def check_url(url):
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         if response.status_code == 200:
             return True
     except requests.RequestException as e:
-        print(f"Request failed: {e}")
+        logger.error(f"Request failed: {e}")
     return False
 
 @app.route("/")
 def index():
     global attempts
-    url = "http://192.168.1.109:3000"
     attempts = 0
-
-    if(DEBUG_MODE):
-        return render_template("loading.html", attempts=attempts)
-        
-    if check_url(url) and not DEBUG_MODE:
-        return redirect(url)
-    else:
-        if not DEBUG_MODE:
-            send_magic_packet("18-C0-4D-07-5B-2D")
 
     return render_template("loading.html", attempts=attempts)
 

@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/src/app.py",
             "env": {
                 "FLASK_ENV": "development",
-                "FLASK_DEBUG": "true"
+                "FLASK_DEBUG": "false"
             },
             "args": [],
             "jinja": true
