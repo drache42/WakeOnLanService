@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, jsonify, render_template, request, redirect, url_for
+from flask import Flask, jsonify, render_template, request
 import requests
 from wakeonlan import send_magic_packet
 import os
@@ -35,10 +35,27 @@ attempts = 0
 
 @app.before_request
 def log_request_info():
+    """
+    Logs information about each incoming request.
+    This function is executed before each request is processed.
+    Logs the HTTP method and the requested URL.
+    """
     logger.info(f"Received {request.method} request for {request.url}")
 
 @app.route("/check_url")
 def check_url_status():
+    """
+    Endpoint to check the status of the URL.
+    Increments the attempt counter and checks the URL status.
+    If not in debug mode, sends a magic packet to the MAC address.
+    Returns a JSON response with the status, number of attempts, and the URL.
+    
+    Status can be:
+    - "available": The URL is reachable.
+    - "debug": The application is in debug mode and less than 5 attempts have been made.
+    - "error": The URL is not reachable after 10 attempts.
+    - "unavailable": The URL is not reachable but less than 10 attempts have been made.
+    """
     global attempts
     attempts += 1
     
@@ -66,6 +83,10 @@ def check_url_status():
         })
 
 def check_url(url):
+    """
+    Helper function to check if the URL is reachable.
+    Returns True if the URL returns a 200 status code, False otherwise.
+    """
     try:
         response = requests.get(url, timeout=5, verify=False)
         if response.status_code == 200:
@@ -76,18 +97,20 @@ def check_url(url):
 
 @app.route("/")
 def index():
+    """
+    Index route that resets the attempt counter and renders the loading page.
+    """
     global attempts
     attempts = 0
 
     return render_template("loading.html", attempts=attempts)
 
-@app.route("/app")
-def app_page():
-    url = request.args.get('url')
-    return render_template("app.html", url=url)
-
 @app.route("/debug-status")
 def debug_status():
+    """
+    Route to check the debug status of the application.
+    Returns a string indicating whether the app and environment variable debug modes are on or off.
+    """
     return f"App debug mode is {'on' if app.debug else 'off'}, Environment variable debug mode is {'on' if DEBUG_MODE else 'off'}"
 
 if __name__ == "__main__":
