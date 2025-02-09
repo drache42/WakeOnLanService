@@ -1,0 +1,26 @@
+[project]
+name = "wakeonlanservice"
+version = "1.0.0"
+description = "A Flask application for Wake On LAN service."
+authors = [
+    {name = "Steffen Froehlich",email = "drache42@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.9,<4.0"
+dependencies = [
+    "flask (>=3.1.0,<4.0.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "wakeonlan (>=3.1.0,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+ruff = "^0.9.5"
+python-dotenv = "^1.0.1"
+

@@ -8,12 +8,14 @@ import re
 app = Flask(__name__)
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG if os.getenv("FLASK_DEBUG", "false").lower() == "true" else logging.INFO)
+logging.basicConfig(level=logging.DEBUG if app.debug else logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Print the current debug level
+current_debug_level = logging.getLevelName(logger.getEffectiveLevel())
+logger.info(f"Current debug level: {current_debug_level}")
+
 # Check if the app is in debug mode based on an environment variable
-DEBUG_MODE = os.getenv("FLASK_DEBUG", "false").lower() == "true"
-logger.info(f"DEBUG_MODE: {DEBUG_MODE}")  # Log the debug mode status.
 logger.info(f"App debug mode is {'on' if app.debug else 'off'}")
 
 # Get MAC address and URL from environment variables
@@ -43,7 +45,7 @@ def log_request_info():
     logger.info(f"Received {request.method} request for {request.url}")
 
 @app.route("/check_url")
-def check_url_status():
+def check_url():
     """
     Endpoint to check the status of the URL.
     Increments the attempt counter and checks the URL status.
@@ -52,23 +54,17 @@ def check_url_status():
     
     Status can be:
     - "available": The URL is reachable.
-    - "debug": The application is in debug mode and less than 5 attempts have been made.
     - "error": The URL is not reachable after 10 attempts.
     - "unavailable": The URL is not reachable but less than 10 attempts have been made.
     """
     global attempts
     attempts += 1
     
-    if not DEBUG_MODE:
+    if not app.debug:
         logger.info(f"Sending magic packet to {MAC_ADDRESS}")
         send_magic_packet(MAC_ADDRESS)
         
-    if app.debug:
-        if attempts >= 5:
-            status = "available"
-        else:
-            status = "debug"
-    elif check_url(URL):
+    if check_url_status(URL):
         status = "available"
     elif attempts >= 10:
         status = "error"
@@ -82,11 +78,12 @@ def check_url_status():
             "url": URL
         })
 
-def check_url(url):
+def check_url_status(url):
     """
     Helper function to check if the URL is reachable.
     Returns True if the URL returns a 200 status code, False otherwise.
     """
+    logger.debug(f"Checking URL: {url}")
     try:
         response = requests.get(url, timeout=5, verify=False)
         if response.status_code == 200:
@@ -111,7 +108,7 @@ def debug_status():
     Route to check the debug status of the application.
     Returns a string indicating whether the app and environment variable debug modes are on or off.
     """
-    return f"App debug mode is {'on' if app.debug else 'off'}, Environment variable debug mode is {'on' if DEBUG_MODE else 'off'}"
+    return f"App debug mode is {'on' if app.debug else 'off'}"
 
 if __name__ == "__main__":
-    app.run(debug=DEBUG_MODE)
+    app.run()
