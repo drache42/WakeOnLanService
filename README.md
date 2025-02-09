@@ -4,13 +4,17 @@
 
 ### Building
 
+Run `build.ps1`, `build.ps1 -BuildOnly` or `build.ps1 -Run`
+
+#### Advanced
+
 To build the Docker image for this application, navigate to the root directory of the project and run the following command:
 
 ```sh
 docker build -t drache42/wakeonlanservice:latest -f docker/Dockerfile .
 ```
 
-### Running
+#### Running
 
 To run the the project locally, run the following command:
 
@@ -18,7 +22,7 @@ To run the the project locally, run the following command:
 docker run -it --rm -p 5000:5000 drache42/wakeonlanservice:latest
 ```
 
-### Pushing
+#### Pushing
 
 To push to my private repo after the build command, run the following commands:
 

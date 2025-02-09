@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, redirect, url_for
 import requests
 from wakeonlan import send_magic_packet
 import os
@@ -67,7 +67,7 @@ def check_url_status():
 
 def check_url(url):
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=5, verify=False)
         if response.status_code == 200:
             return True
     except requests.RequestException as e:
@@ -80,6 +80,11 @@ def index():
     attempts = 0
 
     return render_template("loading.html", attempts=attempts)
+
+@app.route("/app")
+def app_page():
+    url = request.args.get('url')
+    return render_template("app.html", url=url)
 
 @app.route("/debug-status")
 def debug_status():

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App</title>
+    <style>
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+    <script>
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const url = params.get('url');
+            console.log("URL parameter:", url); // Log the URL parameter
+            if (url) {
+                const decodedUrl = decodeURIComponent(url);
+                console.log("Decoded URL:", decodedUrl); // Log the decoded URL
+                document.getElementById('appFrame').src = decodedUrl;
+            } else {
+                document.body.innerHTML = '<h1>Error: No URL provided</h1>';
+            }
+        };
+    </script>
+</head>
+<body>
+    <iframe id="appFrame"></iframe>
+</body>
+</html>

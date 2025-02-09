@@ -172,3 +172,5 @@ cython_debug/
 
 # Visual Studio Code
 *.vs
+
+debug.conf

@@ -1,4 +1,4 @@
-FROM python:3.13-slim-bookworm
+FROM python:3.13-alpine
 
 WORKDIR /app
 COPY src/ /app
@@ -8,6 +8,6 @@ RUN pip install gunicorn
 
 ENV FLASK_ENV=production
 
-EXPOSE 80
+EXPOSE 4200
 
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:4200", "app:app"]

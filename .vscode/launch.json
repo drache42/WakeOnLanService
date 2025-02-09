@@ -11,7 +11,9 @@
             "program": "${workspaceFolder}/src/app.py",
             "env": {
                 "FLASK_ENV": "development",
-                "FLASK_DEBUG": "false"
+                "FLASK_DEBUG": "false",
+                "URL": "http://192.168.1.109:3000",
+                "MAC_ADDRESS": "18-C0-4D-07-5B-2D"
             },
             "args": [],
             "jinja": true
