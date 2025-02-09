@@ -33,26 +33,73 @@ docker push drache42/wakeonlanservice:latest
 
 ## Development Instructions
 
-To run the Flask app in development mode, follow these steps:
+### Initial Set Up
 
-1. Ensure all dependencies are installed:
+1. Clone this repo
 
-```sh
-pip install -r requirements.txt
+1. Create a virtual environment
+
+   Python virtual environments allow you to install Python packages in a location isolated from the rest of your system instead of installing them system-wide. 
+   You can learn more about virtual environments on the [Python.land website](https://python.land/virtual-environments/virtualenv)
+
+1. Activate the virtual environment
+
+1. Install Poetry
+
+    Package management is handled via Poetry.
+    If you don't have Poetry installed, you can install it by following the instructions on the [Poetry website](https://python-poetry.org/docs/#installation).
+
+1. Install Dependencies
+
+   `poetry install`
+
+1. Set Up Environment Variables
+
+   Create a `.env` file in the root directory of the project and add the necessary environment variabless:
+
+   ```env
+   FLASK_APP=src.app
+   FLASK_ENV=development
+   FLASK_DEBUG=1
+   MAC_ADDRESS=your_mac_address_here
+   URL=your_url_here
+   ```
+
+1. Run the Flask Application
+
+   With the virtual environment activated and environment variables set, you can now run your Flask application:
+
+   ```sh
+   flask run --host=0.0.0.0 --port=5000
+   ```
+
+   Access the application by opening your web browser and navigating to http://127.0.0.1:5000/.
+
+### Optional VSCode Set Up
+
+If you want to use VSCode for development, create a `.vscode\launch.json`
+
+```json
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Flask",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/app.py",
+            "env": {
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "true",
+                "URL": you_url_here,
+                "MAC_ADDRESS": your_mac_address_here
+            },
+            "args": [],
+            "jinja": true
+        }
+    ]
+}
 ```
-
-2. Set environment variables and run the Flask app:
-
-```
-$env:FLASK_APP = "app.py"
-$env:FLASK_ENV = "development"
-$env:FLASK_DEBUG = "true"
-flask run
-```
-
-Access the application: Open your web browser and navigate to http://127.0.0.1:5000/.
-
-### Debug Mode
-When running in debug mode, the application will not redirect to the target URL even if it becomes accessible. Instead, it will continue to render the loading page and display the number of attempts made to check the URL. This is useful for testing and debugging purposes.
-
-To enable debug mode, set the FLASK_DEBUG environment variable to true as shown in the development instructions above. 

@@ -6,13 +6,13 @@
     "configurations": [
         {
             "name": "Python: Flask",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/src/app.py",
             "env": {
                 "FLASK_ENV": "development",
-                "FLASK_DEBUG": "false",
-                "URL": "http://192.168.1.109:3000",
+                "FLASK_DEBUG": "true",
+                "URL": "https://192.168.1.109:5443",
                 "MAC_ADDRESS": "18-C0-4D-07-5B-2D"
             },
             "args": [],

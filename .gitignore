@@ -174,3 +174,4 @@ cython_debug/
 *.vs
 
 debug.conf
+.vscode/launch.json
