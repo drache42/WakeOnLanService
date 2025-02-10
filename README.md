@@ -1,10 +1,14 @@
 # WakeOnLanService
 
-## Build Instructions
+## Build Instructions for Docker
 
 ### Building
 
-Run `build.ps1`, `build.ps1 -BuildOnly` or `build.ps1 -Run`
+Run `build.ps1` to build and push to docker
+
+Run `build.ps1 -BuildOnly` to only build the dockerfile
+
+Run `build.ps1 -Run` to build and run the container, without pushing
 
 #### Advanced
 
