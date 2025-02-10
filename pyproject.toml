@@ -24,5 +24,8 @@ pytest = "^8.3.4"
 ruff = "^0.9.5"
 python-dotenv = "^1.0.1"
 
+[tool.poetry.group.production.dependencies]
+gunicorn = "^23.0.0"
+
 [tool.poetry]
 package-mode = false
