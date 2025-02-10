@@ -29,3 +29,6 @@ gunicorn = "^23.0.0"
 
 [tool.poetry]
 package-mode = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src/wakeonlanservice"]

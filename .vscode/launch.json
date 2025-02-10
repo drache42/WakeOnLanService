@@ -8,8 +8,9 @@
             "name": "Python: Flask",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/app.py",
+            "program": "${workspaceFolder}/src/wakeonlanservice/app.py",
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "FLASK_ENV": "development",
                 "FLASK_DEBUG": "true",
                 "URL": "https://192.168.1.109:5443",

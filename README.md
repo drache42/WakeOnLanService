@@ -94,8 +94,9 @@ If you want to use VSCode for development, create a `.vscode\launch.json`
             "name": "Python: Flask",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/app.py",
+            "program": "${workspaceFolder}/src/wakeonlanservice/app.py",
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "FLASK_ENV": "development",
                 "FLASK_DEBUG": "true",
                 "URL": you_url_here,
