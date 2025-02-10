@@ -27,6 +27,9 @@ def log_request_info():
 def index():
     """
     Index route that resets the attempt counter and renders the loading page.
+    
+    Returns:
+        str: Rendered HTML template for the loading page.
     """
     global attempts
     attempts = 0
@@ -39,7 +42,9 @@ def check_url():
     Endpoint to check the status of the URL.
     Increments the attempt counter and checks the URL status.
     If not in debug mode, sends a magic packet to the MAC address.
-    Returns a JSON response with the status, number of attempts, and the URL.
+    
+    Returns:
+        Response: JSON response with the status, number of attempts, and the URL.
     
     Status can be:
     - "available": The URL is reachable.
@@ -71,7 +76,15 @@ def check_url():
 def check_url_status(url):
     """
     Helper function to check if the URL is reachable.
-    Returns True if the URL returns a 200 status code, False otherwise.
+    
+    Args:
+        url (str): The URL to check.
+    
+    Returns:
+        bool: True if the URL returns a 200 status code, False otherwise.
+    
+    Raises:
+        requests.RequestException: If the request to the URL fails.
     """
     logger = logging.getLogger(__name__)
     logger.debug(f"Checking URL: {url}")

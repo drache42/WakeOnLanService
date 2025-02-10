@@ -40,16 +40,16 @@ def validate_env_variables() -> None:
     logger = logging.getLogger(__name__)
 
     # Get MAC address and URL from environment variables
-    MAC_ADDRESS = os.getenv("MAC_ADDRESS")
-    URL = os.getenv("URL")
+    mac_address = os.getenv("MAC_ADDRESS")
+    url = os.getenv("URL")
 
     # Validate MAC address
-    if not MAC_ADDRESS or not re.match(r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$', MAC_ADDRESS):
+    if not mac_address or not re.match(r"^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$", mac_address):
         logger.error("Invalid or missing MAC_ADDRESS environment variable")
         raise ValueError("Invalid or missing MAC_ADDRESS environment variable")
 
     # Validate URL
-    if not URL or not re.match(r'^(http|https)://', URL):
+    if not url or not re.match(r"^(http|https)://", url):
         logger.error("Invalid or missing URL environment variable")
         raise ValueError("Invalid or missing URL environment variable")
 

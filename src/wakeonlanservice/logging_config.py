@@ -11,25 +11,25 @@ def get_logging_config(debug_mode: bool) -> dict:
         dict: A dictionary containing the logging configuration.
     """
     return {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'standard': {
-                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "standard": {
+                "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
             },
         },
-        'handlers': {
-            'console': {
-                'level': 'DEBUG' if debug_mode else 'INFO',
-                'class': 'logging.StreamHandler',
-                'formatter': 'standard'
+        "handlers": {
+            "console": {
+                "level": "DEBUG" if debug_mode else "INFO",
+                "class": "logging.StreamHandler",
+                "formatter": "standard"
             },
         },
-        'loggers': {
-            '': {  # root logger
-                'handlers': ['console'],
-                'level': 'DEBUG' if debug_mode else 'INFO',
-                'propagate': True
+        "loggers": {
+            "": {  # root logger
+                "handlers": ["console"],
+                "level": "DEBUG" if debug_mode else "INFO",
+                "propagate": True
             },
         }
     }
