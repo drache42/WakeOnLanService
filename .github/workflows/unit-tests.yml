@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Unit tests
 
 on:
   workflow_call:
@@ -6,12 +6,16 @@ on:
       python-version:
         required: true
         type: string
-        
+
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Run tests
-      run: |
-        poetry run pytest
+      - name: Set up Python ${{ inputs.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Run tests
+        run: |
+          poetry run pytest

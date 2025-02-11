@@ -10,17 +10,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  checkout:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
+  setup:
+    needs: checkout
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -35,8 +37,12 @@ jobs:
           poetry install
 
   lint:
-    needs: setup
-    uses: ./.github/workflows/linter.yml
+    needs: checkout
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run linter
+        run: |
+          ruff check .
 
   test:
     needs: setup
