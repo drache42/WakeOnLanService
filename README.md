@@ -2,41 +2,6 @@
 
 ![Test Status](https://github.com/drache42/WakeOnLanService/actions/workflows/unit-tests.yml/badge.svg?branch=main)
 
-## Build Instructions for Docker
-
-### Building
-
-Run `build.ps1` to build and push to docker
-
-Run `build.ps1 -BuildOnly` to only build the dockerfile
-
-Run `build.ps1 -Run` to build and run the container, without pushing
-
-#### Advanced
-
-To build the Docker image for this application, navigate to the root directory of the project and run the following command:
-
-```sh
-docker build -t drache42/wakeonlanservice:latest -f docker/Dockerfile .
-```
-
-#### Running
-
-To run the the project locally, run the following command:
-
-```sh
-docker run -it --rm -p 5000:5000 drache42/wakeonlanservice:latest
-```
-
-#### Pushing
-
-To push to my private repo after the build command, run the following commands:
-
-```sh
-docker login
-docker push drache42/wakeonlanservice:latest
-```
-
 ## Development Instructions
 
 ### Initial Set Up
@@ -111,3 +76,17 @@ If you want to use VSCode for development, create a `.vscode\launch.json`
     ]
 }
 ```
+
+## Build and Test Instructions
+
+### Building for docker
+
+Run `build.ps1` to build docker container.
+
+Run `build.ps1 -Run` to build and run the container.
+
+### Testing
+
+To run tests, simply run command `poetry run pytest`. This will run all tests.
+
+If you only want to run unit tests, run: `poetry run pytest tests/unit`
