@@ -1,13 +1,13 @@
-from flask import Blueprint, jsonify, current_app as app, request, render_template
+from flask import Blueprint, jsonify, current_app, request, render_template
 from wakeonlan import send_magic_packet
 import logging
 import os
 import requests
 
-status_bp = Blueprint('status', __name__)
+status_bp = Blueprint("status", __name__)
 
-global attempts
-attempts = 0
+#global attempts
+#attempts = 0
 
 # Get MAC address and URL from environment variables
 MAC_ADDRESS = os.getenv("MAC_ADDRESS")
@@ -31,10 +31,10 @@ def index():
     Returns:
         str: Rendered HTML template for the loading page.
     """
-    global attempts
-    attempts = 0
+    #global attempts
+    #attempts = 0
 
-    return render_template("loading.html", attempts=attempts)
+    return render_template("loading.html", attempts=current_app.config["ATTEMPTS"])
 
 @status_bp.route("/check_url")
 def check_url():
@@ -51,17 +51,17 @@ def check_url():
     - "error": The URL is not reachable after 10 attempts.
     - "unavailable": The URL is not reachable but less than 10 attempts have been made.
     """
-    global attempts
-    attempts += 1
+    #global attempts
+    current_app.config["ATTEMPTS"] += 1
     
-    if not app.debug:
+    if not current_app.debug:
         logger = logging.getLogger(__name__)
         logger.info(f"Sending magic packet to {MAC_ADDRESS}")
         send_magic_packet(MAC_ADDRESS)
         
     if check_url_status(URL):
         status = "available"
-    elif attempts >= 10:
+    elif current_app.config["ATTEMPTS"] >= 10:
         status = "error"
     else:
         status = "unavailable"
@@ -69,7 +69,7 @@ def check_url():
     return jsonify(
         {
             "status": status,
-            "attempts": attempts,
+            "attempts": current_app.config["ATTEMPTS"],
             "url": URL
         })
 
@@ -102,4 +102,4 @@ def debug_status():
     Route to check the debug status of the application.
     Returns a string indicating whether the app and environment variable debug modes are on or off.
     """
-    return f"App debug mode is {'on' if app.debug else 'off'}"
+    return f"App debug mode is {'on' if current_app.debug else 'off'}"
