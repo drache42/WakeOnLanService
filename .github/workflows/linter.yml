@@ -2,27 +2,21 @@ name: Lint
 
 on:
   workflow_call:
+    inputs:
+      python-version:
+        required: true
+        type: string
 
 jobs:
   lint:
+    name: Ruff
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      - name: Common setup
+        uses: ./.github/workflows/common-setup.yml
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ inputs.python-version }}
 
-      - name: Install Poetry
+      - name: Run Ruff
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-
-      - name: Install dependencies
-        run: |
-          poetry install
-
-      - name: Run linter
-        run: |
-          ruff check .
+          poetry run ruff check .
