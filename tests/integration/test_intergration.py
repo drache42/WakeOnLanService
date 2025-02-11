@@ -40,6 +40,8 @@ def test_container_health_check(docker_container):
         health_status = wrapped_container.attrs.get("State", {}).get("Health", {}).get("Status", {})
         if health_status == "healthy":
             break
+        else:
+            print(f"Container state: \n{wrapped_container.attrs.get("State", {})}")
         sleep(10)
     else:
         # Log container output for debugging
