@@ -172,6 +172,7 @@ cython_debug/
 
 # Visual Studio Code
 *.vs
+*.vscode/
 
 debug.conf
-.vscode/launch.json
+
