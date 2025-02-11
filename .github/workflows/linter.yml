@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Common setup
-        uses: ./.github/workflows/common-setup.yml
+        uses: ./.github/workflows/common-setup.yml@main
         with:
           python-version: ${{ inputs.python-version }}
 

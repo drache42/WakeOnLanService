@@ -16,7 +16,7 @@ jobs:
         python-version: ${{ fromJson(inputs.matrix) }}
     steps:
       - name: Common setup
-        uses: ./.github/workflows/common-setup.yml
+        uses: ./.github/workflows/common-setup.yml@main
         with:
           python-version: ${{ matrix.python-version }}
 
