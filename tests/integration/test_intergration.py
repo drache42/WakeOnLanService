@@ -1,6 +1,6 @@
 import pytest
-import os
 from testcontainers.core.container import DockerContainer
+from testcontainers.core.waiting_utils import wait_for_logs
 from time import sleep
 
 @pytest.fixture(scope="session")
@@ -19,11 +19,18 @@ def docker_container():
     container.with_env("URL", "https://example.com")
 
     container.start()
+
+    try:
+        duration = wait_for_logs(container, "wakeonlanservice: App created successfully", timeout=360)
+        print(f"Container started successfully after {duration} seconds")
+    except Exception as e:
+        print(f"Failed to find log message: {e}")
+        container.stop()
+        pytest.fail("Failed to find log message within the timeout period")
     
     yield container
     
     container.stop()
-    container.remove()
 
 def test_container_health_check(docker_container):
     # Wait for the container to start and become healthy
