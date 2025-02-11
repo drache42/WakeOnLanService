@@ -1,0 +1,39 @@
+name: Main
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      python-version: ${{ steps.set-python-version.outputs.python-version }}
+    
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    
+    steps:
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Install dependencies
+        run: |
+          poetry install
+
+  test:
+    needs: setup
+    uses: ./.github/workflows/unit-tests.yml
+
+  lint:
+    needs: setup
+    uses: ./.github/workflows/linter.yml
+
