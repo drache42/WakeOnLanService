@@ -4,6 +4,8 @@ import logging
 import os
 import requests
 import re
+import urllib3
+import warnings
 
 status_bp = Blueprint("status", __name__)
 
@@ -92,12 +94,18 @@ def check_url_status(url):
     """
     logger = logging.getLogger(__name__)
     logger.debug(f"Checking URL: {url}")
-    try:
-        response = requests.get(url, timeout=5, verify=False)
-        if response.status_code == 200:
-            return True
-    except requests.RequestException as e:
-        logger.error(f"Request failed: {e}")
+    
+    # Suppress only the single InsecureRequestWarning from urllib3 needed for this request.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", urllib3.exceptions.InsecureRequestWarning)
+
+        try:
+            response = requests.get(url, timeout=5, verify=False)
+            if response.status_code == 200:
+                return True
+        except requests.RequestException as e:
+            logger.error(f"Request failed: {e}")
+    
     return False
 
 @status_bp.route("/debug-status")

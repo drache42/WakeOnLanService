@@ -1,34 +1,33 @@
-name: Unit tests
+name: Lint
 
 on:
   workflow_call:
     inputs:
-      matrix:
+      python-version:
         required: true
         type: string
 
 jobs:
-  test:
-    name: Pytest
+  lint:
+    name: Ruff
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ${{ fromJson(inputs.matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install poetry
         run: pipx install poetry
-
-      - name: Set up Python ${{ matrix.python-version }}
+      
+      - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ inputs.python-version }}
           cache: "poetry"
 
       - name: Install dependencies
-        run: poetry install
+        run: |
+          poetry install
 
-      - name: Run tests
-        run: poetry run pytest
+      - name: Run Ruff
+        run: |
+          poetry run ruff check .
