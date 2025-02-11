@@ -32,6 +32,7 @@ package-mode = false
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+filterwarnings = ["error"]
 
 [tool.ruff]
 # Exclude specific files or directories
