@@ -22,6 +22,9 @@ FROM python:3.13-alpine
 # Set the working directory
 WORKDIR /app
 
+# Install curl
+RUN apk add --no-cache curl
+
 # Copy the installed packages from the builder stage
 COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
@@ -35,6 +38,9 @@ ENV FLASK_ENV=production
 
 # Expose the port the app runs on
 EXPOSE 4200
+
+# Add healthcheck instruction
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD curl -f http://localhost:4200/healthcheck || exit 1
 
 # Run the application
 CMD ["gunicorn", "--bind", "0.0.0.0:4200", "wakeonlanservice.app:app"]
