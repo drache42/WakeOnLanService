@@ -14,14 +14,9 @@ def docker_container():
     container = DockerContainer("wakeonlanservice:test")
     container.with_bind_ports(4200, 4200)
 
-    # Print environment variables for debugging
-    mac_address = os.getenv("MAC_ADDRESS")
-    url = os.getenv("URL")
-    print(f"MAC_ADDRESS: {mac_address}")
-    print(f"URL: {url}")
-
-    container.with_env("MAC_ADDRESS", mac_address)
-    container.with_env("URL", url)
+    # Set the environment variables
+    container.with_env("MAC_ADDRESS", "18:C0:4D:07:5B:2D")
+    container.with_env("URL", "https://example.com")
 
     container.start()
     
