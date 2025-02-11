@@ -10,43 +10,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  checkout:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-  setup:
-    needs: checkout
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-    steps:
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-
-      - name: Install dependencies
-        run: |
-          poetry install
-
   lint:
-    needs: checkout
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run linter
-        run: |
-          ruff check .
+    uses: ./.github/workflows/linter.yml
 
   test:
-    needs: setup
     uses: ./.github/workflows/unit-tests.yml
     with:
-      python-version: ${{ matrix.python-version }}
-
+      matrix: |
+        ["3.9", "3.10", "3.11", "3.12", "3.13"]

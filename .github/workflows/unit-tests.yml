@@ -3,18 +3,32 @@ name: Unit tests
 on:
   workflow_call:
     inputs:
-      python-version:
+      matrix:
         required: true
         type: string
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ${{ fromJson(inputs.matrix) }}
     steps:
-      - name: Set up Python ${{ inputs.python-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Install dependencies
+        run: |
+          poetry install
 
       - name: Run tests
         run: |
