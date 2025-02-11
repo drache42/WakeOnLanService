@@ -11,9 +11,7 @@ jobs:
   test:
     name: Integration tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ${{ fromJson(inputs.matrix) }}
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

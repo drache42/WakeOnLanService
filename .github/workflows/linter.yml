@@ -11,6 +11,7 @@ jobs:
   lint:
     name: Ruff
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,9 +26,7 @@ jobs:
           cache: "poetry"
 
       - name: Install dependencies
-        run: |
-          poetry install
+        run: poetry install
 
       - name: Run Ruff
-        run: |
-          poetry run ruff check .
+        run: poetry run ruff check .
