@@ -1,9 +1,7 @@
 name: Publish Docker Image
 
 on:
-  push:
-    tags:
-      - 'release/**'
+  workflow_call:
 
 jobs:
   publish:
@@ -42,7 +40,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          push: true
+          push: false
           tags: |
             drache42/wakeonlanservice:${{ env.VERSION }}
             drache42/wakeonlanservice:latest
