@@ -15,8 +15,13 @@ jobs:
     with:
       python-version: "3.13"
 
-  test:
+  unit-tests:
     uses: ./.github/workflows/unit-tests.yml
     with:
       matrix: |
         ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+  integration-tests:
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      python-version: "3.13"

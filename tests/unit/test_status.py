@@ -88,3 +88,10 @@ class TestCheckUrl:
         data = response.get_json()
         assert data["status"] == "error"
         assert data["attempts"] == 11
+
+class TestHealthCheck:
+    def test_healthcheck(self, client):
+        response = client.get("/healthcheck")
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["status"] == "healthy"

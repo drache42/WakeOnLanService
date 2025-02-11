@@ -116,6 +116,16 @@ def debug_status():
     """
     return f"App debug mode is {'on' if current_app.debug else 'off'}"
 
+@status_bp.route("/healthcheck")
+def healthcheck():
+    """
+    Health check endpoint to verify that the application is running.
+    
+    Returns:
+        Response: JSON response indicating the health status of the application.
+    """
+    return jsonify({"status": "healthy"})
+
 def validate_mac_address(mac_address: str) -> None:
     """
     Validate the MAC address.

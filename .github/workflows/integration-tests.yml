@@ -1,4 +1,4 @@
-name: Lint
+name: Integration tests
 
 on:
   workflow_call:
@@ -8,17 +8,17 @@ on:
         type: string
 
 jobs:
-  lint:
-    name: Ruff
+  test:
+    name: Integration tests
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install poetry
         run: pipx install poetry
-      
+
       - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -28,5 +28,5 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Run Ruff
-        run: poetry run ruff check .
+      - name: Run unit tests
+        run: poetry run pytest tests/integration
