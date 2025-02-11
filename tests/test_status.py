@@ -1,8 +1,7 @@
 import pytest
 import requests
 from wakeonlanservice import create_app
-from wakeonlanservice.blueprints.status import status_bp, check_url_status
-import logging
+from wakeonlanservice.blueprints.status import check_url_status
 
 @pytest.fixture
 def app(scope="function"):
