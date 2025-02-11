@@ -35,7 +35,7 @@ def docker_container():
 def test_container_health_check(docker_container):
     # Wait for the container to start and become healthy
     wrapped_container = docker_container.get_wrapped_container()
-    for _ in range(3):
+    for _ in range(10):
         wrapped_container.reload()
         health_status = wrapped_container.attrs.get("State", {}).get("Health", {}).get("Status", {})
         if health_status == "healthy":
