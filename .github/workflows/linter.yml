@@ -21,6 +21,9 @@ jobs:
           python-version: ${{ inputs.python-version }}
           cache: "poetry"
 
+      - name: Install poetry
+        run: pipx install poetry
+        
       - name: Install dependencies
         run: |
           poetry install

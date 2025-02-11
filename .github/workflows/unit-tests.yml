@@ -14,10 +14,12 @@ jobs:
     strategy:
       matrix:
         python-version: ${{ fromJson(inputs.matrix) }}
-        
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
 
       - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v5
@@ -26,9 +28,7 @@ jobs:
           cache: "poetry"
 
       - name: Install dependencies
-        run: |
-          poetry install
+        run: poetry install
 
       - name: Run tests
-        run: |
-          poetry run pytest
+        run: poetry run pytest
