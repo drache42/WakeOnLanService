@@ -12,6 +12,8 @@ on:
 jobs:
   lint:
     uses: ./.github/workflows/linter.yml
+    with:
+      python-version: "3.13"
 
   test:
     uses: ./.github/workflows/unit-tests.yml
