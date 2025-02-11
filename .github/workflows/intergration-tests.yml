@@ -1,15 +1,15 @@
-name: Unit tests
+name: Integration tests
 
 on:
   workflow_call:
     inputs:
-      matrix:
+      python-version:
         required: true
         type: string
 
 jobs:
   test:
-    name: Pytest
+    name: Integration tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,14 +21,14 @@ jobs:
       - name: Install poetry
         run: pipx install poetry
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ inputs.python-version }}
           cache: "poetry"
 
       - name: Install dependencies
         run: poetry install
 
       - name: Run unit tests
-        run: poetry run pytest .\tests\unit
+        run: poetry run pytest .\tests\integration
