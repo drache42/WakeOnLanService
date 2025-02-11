@@ -12,10 +12,18 @@ jobs:
     name: Ruff
     runs-on: ubuntu-latest
     steps:
-      - name: Common setup
-        uses: ./.github/workflows/common-setup.yml@main
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ inputs.python-version }}
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version }}
+          cache: "poetry"
+
+      - name: Install dependencies
+        run: |
+          poetry install
 
       - name: Run Ruff
         run: |
