@@ -8,9 +8,12 @@ from wakeonlanservice.logging_config import setup_logging
 # Import blueprints
 from wakeonlanservice.blueprints.status import status_bp
 
-def create_app() -> Flask:
+def create_app(test_config=None) -> Flask:
     """
     Create and configure the Flask application.
+    
+    Args:
+        test_config (dict, optional): Configuration dictionary for testing.
     
     Returns:
         Flask: The Flask application instance.
@@ -19,6 +22,10 @@ def create_app() -> Flask:
 
     # Set up logging
     setup_logging(app.debug)
+
+    # Apply the test configuration if provided
+    if test_config:
+        app.config.update(test_config)
 
     # Validate environment variables
     validate_env_variables()

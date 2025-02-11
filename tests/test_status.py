@@ -6,7 +6,7 @@ import logging
 
 @pytest.fixture
 def app(scope="function"):
-    app = create_app()
+    app = create_app({"TESTING": True})
     return app
 
 @pytest.fixture
@@ -36,8 +36,8 @@ class TestCheckUrlStatus:
 
 class TestMultipleAppInstances:
     def test_multiple_app_instances_attempts(self):
-        app1 = create_app()
-        app2 = create_app()
+        app1 = create_app({"TESTING": True})
+        app2 = create_app({"TESTING": True})
         
         client1 = app1.test_client()
         client1.get("/check_url")

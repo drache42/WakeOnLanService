@@ -3,6 +3,12 @@ from flask import Flask
 from wakeonlanservice import create_app, validate_env_variables
 
 class TestCreateApp:
+    def test_app_creation(self):
+        app = create_app({"TESTING": True})
+        assert isinstance(app, Flask)
+        assert app is not None
+        assert app.config["TESTING"] is True
+
     def test_create_app_prod(self, monkeypatch):
         # Set FLASK_DEBUG environment variable to '0' (False)
         monkeypatch.setenv("FLASK_DEBUG", "0")
