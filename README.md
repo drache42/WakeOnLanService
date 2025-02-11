@@ -1,6 +1,6 @@
 # WakeOnLanService
 
-![Test Status](https://github.com/drache42/WakeOnLanService/workflows/unit-tests/badge.svg)
+![Test Status](https://github.com/drache42/WakeOnLanService/actions/workflows/unit-tests.yml/badge.svg?branch=main)
 
 ## Build Instructions for Docker
 
