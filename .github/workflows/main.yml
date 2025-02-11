@@ -13,14 +13,19 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     
-    outputs:
-      python-version: ${{ steps.set-python-version.outputs.python-version }}
-    
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
@@ -29,11 +34,13 @@ jobs:
         run: |
           poetry install
 
-  test:
-    needs: setup
-    uses: ./.github/workflows/unit-tests.yml
-
   lint:
     needs: setup
     uses: ./.github/workflows/linter.yml
+
+  test:
+    needs: setup
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      python-version: ${{ matrix.python-version }}
 

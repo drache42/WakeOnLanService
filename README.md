@@ -45,7 +45,8 @@ docker push drache42/wakeonlanservice:latest
 
 1. Create a virtual environment
 
-   Python virtual environments allow you to install Python packages in a location isolated from the rest of your system instead of installing them system-wide. 
+   Python virtual environments allow you to install Python packages in a location isolated from the rest of your system instead of installing them system-wide.
+
    You can learn more about virtual environments on the [Python.land website](https://python.land/virtual-environments/virtualenv)
 
 1. Activate the virtual environment
@@ -79,7 +80,7 @@ docker push drache42/wakeonlanservice:latest
    flask run --host=0.0.0.0 --port=5000
    ```
 
-   Access the application by opening your web browser and navigating to http://127.0.0.1:5000/.
+   Access the application by opening your web browser and navigating to <http://127.0.0.1:5000/>.
 
 ### Optional VSCode Set Up
 

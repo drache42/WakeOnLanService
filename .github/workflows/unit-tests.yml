@@ -1,5 +1,12 @@
 name: CI Pipeline
 
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        required: true
+        type: string
+        
 jobs:
   test:
     runs-on: ubuntu-latest
