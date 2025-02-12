@@ -8,6 +8,8 @@ on:
     branches:
       - main
       - 'refs/tags/release/**'
+    tags:
+      - 'release/**'
   workflow_dispatch:
 
 jobs:
