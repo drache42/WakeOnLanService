@@ -90,3 +90,7 @@ Run `build.ps1 -Run` to build and run the container.
 To run tests, simply run command `poetry run pytest`. This will run all tests.
 
 If you only want to run unit tests, run: `poetry run pytest tests/unit`
+
+## Dockerhub
+
+Docker container can be found at <https://hub.docker.com/r/drache42/wakeonlanservice>
