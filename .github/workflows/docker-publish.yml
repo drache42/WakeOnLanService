@@ -2,7 +2,11 @@ name: Publish Docker Image
 
 on:
   workflow_call:
-
+    secrets:
+        DOCKER_USERNAME:
+            required: true
+        DOCKER_PASSWORD:
+            required: true
 jobs:
   publish:
     name: Publish Docker Image
