@@ -44,11 +44,9 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          push: false
+          push: true
           load: true
           tags: |
             drache42/wakeonlanservice:${{ env.VERSION }}
             drache42/wakeonlanservice:latest
-
-      - name: Verify Docker image
-        run: docker run --rm drache42/wakeonlanservice:${{ env.VERSION }} --version
+      
