@@ -45,6 +45,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: false
+          load: true
           tags: |
             drache42/wakeonlanservice:${{ env.VERSION }}
             drache42/wakeonlanservice:latest
