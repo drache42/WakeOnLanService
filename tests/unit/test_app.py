@@ -5,6 +5,7 @@ from wakeonlanservice import create_app, validate_env_variables
 class TestCreateApp:
     def test_app_creation(self):
         app = create_app({"TESTING": True})
+        
         assert isinstance(app, Flask)
         assert app is not None
         assert app.config["TESTING"] is True
@@ -13,17 +14,21 @@ class TestCreateApp:
         # Set FLASK_DEBUG environment variable to '0' (False)
         monkeypatch.setenv("FLASK_DEBUG", "0")
         app = create_app()
+        
         assert isinstance(app, Flask)
         assert app.debug is False
-        assert app.config["ATTEMPTS"] == 0
+        assert "SECRET_KEY" in app.config
+        assert app.config["SECRET_KEY"] is not None
 
     def test_create_app_debug(self, monkeypatch):
         # Set FLASK_DEBUG environment variable to '1' (True)
         monkeypatch.setenv("FLASK_DEBUG", "1")
         app = create_app()
+        
         assert isinstance(app, Flask)
         assert app.debug is True
-        assert app.config["ATTEMPTS"] == 0
+        assert "SECRET_KEY" in app.config
+        assert app.config["SECRET_KEY"] is not None
 
 class TestValidateEnvVariables:
     def test_validate_env_variables_valid(self, monkeypatch):
