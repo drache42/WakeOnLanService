@@ -91,6 +91,26 @@ To run tests, simply run command `poetry run pytest`. This will run all tests.
 
 If you only want to run unit tests, run: `poetry run pytest tests/unit`
 
+## Release Process
+
+To release a new version of the application:
+
+1. Make sure all your changes have been merged to the `main` branch
+2. Create a new tag with the format `release/x.y.z` (e.g., `release/1.0.0`) where x.y.z follows semantic versioning
+3. Push the tag to GitHub:
+   ```sh
+   git tag release/1.0.0
+   git push origin release/1.0.0
+   ```
+4. The GitHub Actions workflow will automatically:
+   - Run linting checks
+   - Run unit tests for supported python versions
+   - Run integration tests
+   - Build the Docker image
+   - Push the Docker image to Docker Hub with tags matching the version and 'latest'
+
+Note: You need to have the Docker Hub credentials configured as secrets in your GitHub repository (`DOCKER_USERNAME` and `DOCKER_PASSWORD`).
+
 ## Dockerhub
 
 Docker container can be found at <https://hub.docker.com/r/drache42/wakeonlanservice>
