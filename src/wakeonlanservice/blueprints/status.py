@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, current_app, request, render_template
+from flask import Blueprint, jsonify, current_app, request, render_template, session
 from wakeonlan import send_magic_packet
 import logging
 import os
@@ -27,8 +27,10 @@ def index():
     Returns:
         str: Rendered HTML template for the loading page.
     """
-
-    return render_template("loading.html", attempts=current_app.config["ATTEMPTS"])
+    # Initialize or reset the session-specific attempts counter
+    session["attempts"] = 0
+    
+    return render_template("loading.html", attempts=session.get("attempts", 0))
 
 @status_bp.route("/check_url")
 def check_url():
@@ -51,7 +53,12 @@ def check_url():
     mac_address = os.getenv("MAC_ADDRESS")
     url = os.getenv("URL")
     
-    current_app.config["ATTEMPTS"] += 1
+    # Initialize attempts if not present in session
+    if "attempts" not in session:
+        session["attempts"] = 0
+    
+    # Increment session-specific attempts counter
+    session["attempts"] += 1
     
     if current_app.config["TESTING"]:
         logger.info(f"Testing: Not sending magic packet, just validating MAC address: {mac_address}")
@@ -67,7 +74,7 @@ def check_url():
         
     if check_url_status(url):
         status = "available"
-    elif current_app.config["ATTEMPTS"] >= 10:
+    elif session["attempts"] >= 10:
         status = "error"
     else:
         status = "unavailable"
@@ -75,7 +82,7 @@ def check_url():
     return jsonify(
         {
             "status": status,
-            "attempts": current_app.config["ATTEMPTS"],
+            "attempts": session["attempts"],
             "url": url
         })
 

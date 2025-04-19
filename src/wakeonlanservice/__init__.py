@@ -18,19 +18,23 @@ def create_app(test_config=None) -> Flask:
     Returns:
         Flask: The Flask application instance.
     """
-    app = Flask(__name__)
+    app = Flask(__name__, instance_relative_config=True)
 
-    # Set up logging
-    setup_logging(app.debug)
+    # Set default configuration
+    app.config.from_mapping(
+        SECRET_KEY=os.environ.get("SECRET_KEY", os.urandom(24)),
+        TESTING=False,
+    )
 
     # Apply the test configuration if provided
     if test_config:
         app.config.update(test_config)
 
+    # Set up logging
+    setup_logging(app.debug)
+
     # Validate environment variables
     validate_env_variables()
-
-    app.config["ATTEMPTS"] = 0
 
     # Register blueprints
     app.register_blueprint(status_bp)
