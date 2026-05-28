@@ -1,0 +1,343 @@
+name: Main Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-pipeline
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Build and test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('TalkingPointsSummary.sln', 'Directory.Build.props', 'Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore solution
+        run: dotnet restore TalkingPointsSummary.sln
+
+      - name: Build solution
+        run: dotnet build TalkingPointsSummary.sln --configuration Release --no-restore
+
+      - name: Run unit tests
+        id: unit_tests
+        continue-on-error: true
+        run: >-
+          dotnet test tests/TalkingPointsSummary.Tests/TalkingPointsSummary.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter "Category!=Integration"
+          --logger "trx;LogFileName=unit-tests.trx"
+          --results-directory artifacts/test-results/unit
+
+      - name: Run integration tests
+        id: integration_tests
+        continue-on-error: true
+        run: >-
+          dotnet test tests/TalkingPointsSummary.IntegrationTests/TalkingPointsSummary.IntegrationTests.csproj
+          --configuration Release
+          --no-build
+          --filter "Category=Integration"
+          --logger "trx;LogFileName=integration-tests.trx"
+          --results-directory artifacts/test-results/integration
+
+      - name: Publish test summary
+        if: always()
+        run: .github/scripts/publish-test-summary.ps1
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: main-test-results-${{ github.run_id }}
+          path: artifacts/test-results
+          if-no-files-found: warn
+
+      - name: Fail workflow on test errors
+        if: always()
+        env:
+          UNIT_OUTCOME: ${{ steps.unit_tests.outcome }}
+          INTEGRATION_OUTCOME: ${{ steps.integration_tests.outcome }}
+        run: |
+          if ($env:UNIT_OUTCOME -eq 'failure' -or $env:INTEGRATION_OUTCOME -eq 'failure') {
+            throw 'One or more test suites failed.'
+          }
+
+  compute-version:
+    name: Compute next version
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: read
+      pull-requests: read
+    defaults:
+      run:
+        shell: pwsh
+    outputs:
+      version: ${{ steps.compute.outputs.version }}
+      skip: ${{ steps.compute.outputs.skip }}
+      short_sha: ${{ steps.compute.outputs.short_sha }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Compute version
+        id: compute
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/compute-version.ps1
+
+  publish-main-images:
+    name: Publish branch images
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - compute-version
+    if: >-
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          needs.compute-version.result == 'success' }}
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image names
+        id: image_names
+        run: |
+          $repoLower = $env:GITHUB_REPOSITORY.ToLower()
+          $shortSha  = $env:GITHUB_SHA.Substring(0, 7)
+          "worker=ghcr.io/$repoLower-worker" | Add-Content -Path $env:GITHUB_OUTPUT
+          "admin=ghcr.io/$repoLower-admin"   | Add-Content -Path $env:GITHUB_OUTPUT
+          "short_sha=$shortSha"              | Add-Content -Path $env:GITHUB_OUTPUT
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.image_names.outputs.worker }}:main
+            ${{ steps.image_names.outputs.worker }}:sha-${{ steps.image_names.outputs.short_sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=TalkingPointsSummary Worker
+          build-args: |
+            VERSION=${{ needs.compute-version.outputs.version }}
+            COMMIT_SHA=${{ steps.image_names.outputs.short_sha }}
+          cache-from: type=gha,scope=worker-image
+          cache-to: type=gha,mode=max,scope=worker-image
+
+      - name: Build and push admin image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: infra/Dockerfile.admin
+          push: true
+          tags: |
+            ${{ steps.image_names.outputs.admin }}:main
+            ${{ steps.image_names.outputs.admin }}:sha-${{ steps.image_names.outputs.short_sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=TalkingPointsSummary Admin
+          build-args: |
+            VERSION=${{ needs.compute-version.outputs.version }}
+            COMMIT_SHA=${{ steps.image_names.outputs.short_sha }}
+          cache-from: type=gha,scope=admin-image
+          cache-to: type=gha,mode=max,scope=admin-image
+
+  auto-release:
+    name: Auto-release
+    runs-on: ubuntu-latest
+    needs:
+      - compute-version
+      - publish-main-images
+    if: >-
+      ${{ github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          needs.compute-version.outputs.skip == 'false' &&
+          needs.publish-main-images.result == 'success' }}
+    permissions:
+      contents: write
+      packages: write
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push release tag
+        env:
+          VERSION: ${{ needs.compute-version.outputs.version }}
+        run: |
+          if (git tag -l "v$env:VERSION") {
+            Write-Host "Tag v$env:VERSION already exists - skipping tag creation."
+          } else {
+            git tag -a "v$env:VERSION" HEAD -m "Release v$env:VERSION"
+            git push origin "v$env:VERSION"
+          }
+
+      - name: Compute image names
+        id: image_names
+        env:
+          SHORT_SHA: ${{ needs.compute-version.outputs.short_sha }}
+          VERSION: ${{ needs.compute-version.outputs.version }}
+        run: |
+          $repoLower  = $env:GITHUB_REPOSITORY.ToLower()
+          $majorMinor = ($env:VERSION -split '\.')[0..1] -join '.'
+          "worker=ghcr.io/$repoLower-worker" | Add-Content -Path $env:GITHUB_OUTPUT
+          "admin=ghcr.io/$repoLower-admin"   | Add-Content -Path $env:GITHUB_OUTPUT
+          "short_sha=$env:SHORT_SHA"         | Add-Content -Path $env:GITHUB_OUTPUT
+          "major_minor=$majorMinor"          | Add-Content -Path $env:GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Promote worker image to release tags
+        env:
+          IMAGE: ${{ steps.image_names.outputs.worker }}
+          VERSION: ${{ needs.compute-version.outputs.version }}
+          MAJOR_MINOR: ${{ steps.image_names.outputs.major_minor }}
+          SHORT_SHA: ${{ steps.image_names.outputs.short_sha }}
+        run: |
+          $image = $env:IMAGE
+          docker buildx imagetools create `
+            --tag "$image`:$env:VERSION" `
+            --tag "$image`:$env:MAJOR_MINOR" `
+            --tag "$image`:latest" `
+            "$image`:sha-$env:SHORT_SHA"
+
+      - name: Promote admin image to release tags
+        env:
+          IMAGE: ${{ steps.image_names.outputs.admin }}
+          VERSION: ${{ needs.compute-version.outputs.version }}
+          MAJOR_MINOR: ${{ steps.image_names.outputs.major_minor }}
+          SHORT_SHA: ${{ steps.image_names.outputs.short_sha }}
+        run: |
+          $image = $env:IMAGE
+          docker buildx imagetools create `
+            --tag "$image`:$env:VERSION" `
+            --tag "$image`:$env:MAJOR_MINOR" `
+            --tag "$image`:latest" `
+            "$image`:sha-$env:SHORT_SHA"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.compute-version.outputs.version }}
+        run: |
+          gh release view "v$env:VERSION" *>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release v$env:VERSION already exists - skipping release creation."
+          } else {
+            gh release create "v$env:VERSION" `
+              --title "v$env:VERSION" `
+              --generate-notes `
+              --latest
+          }
+
+      - name: Notify Discord on release
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MESSAGE: |
+            🚀 Released v${{ needs.compute-version.outputs.version }}
+            Repository: ${{ github.repository }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: .github/scripts/notify-discord.ps1
+
+  notify-discord:
+    name: Notify Discord on failures
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - compute-version
+      - publish-main-images
+      - auto-release
+    if: >-
+      ${{ always() && (
+        needs.validate.result == 'failure' ||
+        needs.compute-version.result == 'failure' ||
+        needs.publish-main-images.result == 'failure' ||
+        needs.auto-release.result == 'failure'
+      ) }}
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Post failure notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MESSAGE: |
+            Main pipeline failed.
+            Repository: ${{ github.repository }}
+            Ref: ${{ github.ref_name }}
+            Event: ${{ github.event_name }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: .github/scripts/notify-discord.ps1

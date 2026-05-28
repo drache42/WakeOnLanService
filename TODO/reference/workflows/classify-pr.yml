@@ -1,0 +1,70 @@
+name: Classify PR
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  classify:
+    name: Classify PR semver bump
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          repository: ${{ github.repository }}
+
+      - name: Post fork notice
+        if: ${{ github.event.pull_request.head.repo.fork == true }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: .github/scripts/post-fork-notice.ps1
+
+      - name: Fetch PR diff
+        if: ${{ github.event.pull_request.head.repo.fork == false }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: .github/scripts/fetch-pr-diff.ps1
+
+      - name: Classify with Claude
+        if: ${{ github.event.pull_request.head.repo.fork == false }}
+        id: classify
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: .github/scripts/classify-pr.ps1
+
+      - name: Apply label and post comment
+        if: ${{ github.event.pull_request.head.repo.fork == false }}
+        env:
+          CLASSIFICATION: ${{ steps.classify.outputs.classification }}
+          RATIONALE: ${{ steps.classify.outputs.rationale }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: .github/scripts/apply-semver-label.ps1
+
+      - name: Notify Discord on Dependabot major classification
+        if: >-
+          ${{ github.event.pull_request.head.repo.fork == false &&
+              github.actor == 'dependabot[bot]' &&
+              steps.classify.outputs.classification == 'major' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MESSAGE: |
+            ⚠️ **Dependabot breaking-change detected** — manual review required before merging.
+
+            PR: ${{ github.event.pull_request.title }}
+            ${{ github.event.pull_request.html_url }}
+        run: .github/scripts/notify-discord.ps1
