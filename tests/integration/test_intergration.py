@@ -1,6 +1,8 @@
 import pytest
+from datetime import timedelta
+
 from testcontainers.core.container import DockerContainer
-from testcontainers.core.waiting_utils import wait_for_logs
+from testcontainers.core.wait_strategies import LogMessageWaitStrategy
 from time import sleep
 import logging
 
@@ -32,24 +34,15 @@ def docker_container():
     container.with_env("URL", "https://example.com")
     logger.debug("Environment variables configured")
 
+    container.waiting_for(
+        LogMessageWaitStrategy("wakeonlanservice: App created successfully")
+        .with_startup_timeout(timedelta(seconds=360))
+    )
+
     logger.info("Starting container")
     container.start()
     logger.debug(f"Container started with ID: {container.get_wrapped_container().id}")
-
-    try:
-        logger.info("Waiting for application startup log message...")
-        duration = wait_for_logs(container, "wakeonlanservice: App created successfully", timeout=360)
-        logger.info(f"Container started successfully after {duration} seconds")
-    except Exception as e:
-        logger.error(f"Failed to find log message: {e}")
-        logger.debug("Retrieving container logs for troubleshooting")
-        try:
-            logs = container.get_logs()
-            logger.debug(f"Container logs: {logs}")
-        except Exception as log_e:
-            logger.error(f"Failed to retrieve logs: {log_e}")
-        container.stop()
-        pytest.fail("Failed to find log message within the timeout period")
+    logger.info("Container started successfully")
     
     logger.info("Container fixture setup complete, yielding container")
     yield container
