@@ -123,6 +123,22 @@ TODO/reference/
 
 6. **No changes to `linter.yml`** -- Linting has no test output to capture.
 
+7. **Update `docker/Dockerfile`** -- Add a `VERSION` build arg so the computed version is baked into the container at build time:
+   - After the `FROM python:3.13-alpine` line in the production stage (Stage 2), add:
+     ```dockerfile
+     ARG VERSION=dev
+     ENV APP_VERSION=$VERSION
+     ```
+   - This makes `APP_VERSION` available to the running Flask app at runtime.
+
+8. **Add `/version` endpoint to `src/wakeonlanservice/blueprints/status.py`** -- Add a route that returns the baked-in version:
+   ```python
+   @status_bp.route("/version")
+   def version():
+       return jsonify({"version": os.environ.get("APP_VERSION", "dev")})
+   ```
+   Place it after the existing `/healthcheck` route. `os` and `jsonify` are already imported in this file.
+
 ### Files Created/Modified
 - CREATE: `.github/scripts/compute-version.ps1`
 - CREATE: `.github/scripts/classify-pr.ps1`
@@ -135,6 +151,8 @@ TODO/reference/
 - CREATE: `.github/dependabot.yml`
 - MODIFY: `.github/workflows/unit-tests.yml`
 - MODIFY: `.github/workflows/integration-tests.yml`
+- MODIFY: `docker/Dockerfile`
+- MODIFY: `src/wakeonlanservice/blueprints/status.py`
 
 ### Verification
 - All `.ps1` scripts should be syntactically valid PowerShell
@@ -143,6 +161,8 @@ TODO/reference/
 - `publish-test-summary.ps1` should handle both single and multiple JUnit XML files
 - `compute-version.ps1` default version should be `1.0.0` (not `1.1.2`)
 - `classify-pr.ps1` system prompt should reference Python/Flask, not .NET
+- `docker/Dockerfile` should have `ARG VERSION=dev` and `ENV APP_VERSION=$VERSION` in the production stage
+- `/version` endpoint should return `{"version": "dev"}` when no build arg is provided
 
 ---
 
@@ -195,6 +215,7 @@ TODO/reference/
           - `push: true`
           - Tags: `drache42/wakeonlanservice:main`, `drache42/wakeonlanservice:sha-<short_sha>`
           - Labels: `org.opencontainers.image.source`, `org.opencontainers.image.revision`
+          - Build args: `VERSION=${{ needs.compute-version.outputs.version }}`
           - Cache: `cache-from: type=gha,scope=app-image`, `cache-to: type=gha,mode=max,scope=app-image`
      - `auto-release` (inline): Depends on `[compute-version, publish-main-image]`. Condition: push to main AND `compute-version.outputs.skip == 'false'` AND `publish-main-image.result == 'success'`. Permissions: `contents: write`. Uses `pwsh` shell. Steps:
        1. Checkout with `fetch-depth: 0`
@@ -300,5 +321,4 @@ TODO/reference/
 - `publish-test-summary.ps1` written from scratch for JUnit XML (pytest) instead of TRX (.NET)
 
 ## Further Considerations
-1. **pyproject.toml version sync** -- The version in pyproject.toml (currently 1.0.0) is static and won't auto-update with releases. This is fine for a Docker-deployed service where the Docker tag IS the version. If you later want pyproject.toml to stay in sync, a step could be added to auto-update it (excluded from this plan).
-2. **Dockerfile VERSION file** -- The current Dockerfile doesn't consume a VERSION build arg. A build arg could be added to embed the computed version, but since the Docker tag already carries the version this is cosmetic (excluded from this plan).
+None. All considered items have been addressed in the plan.
