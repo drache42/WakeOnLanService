@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM python:3.13-alpine AS builder
+FROM python:3.14-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -17,7 +17,7 @@ RUN poetry config virtualenvs.create false && poetry install --no-interaction --
 COPY src/ /app/
 
 # Stage 2: Production stage
-FROM python:3.13-alpine
+FROM python:3.14-alpine
 
 ARG VERSION=dev
 ENV APP_VERSION=$VERSION
