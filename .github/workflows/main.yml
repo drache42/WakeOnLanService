@@ -109,7 +109,7 @@ jobs:
           "short_sha=$shortSha" | Add-Content -Path $env:GITHUB_OUTPUT
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile
