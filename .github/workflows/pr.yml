@@ -1,0 +1,77 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    uses: ./.github/workflows/linter.yml
+    with:
+      python-version: "3.13"
+
+  unit-tests:
+    uses: ./.github/workflows/unit-tests.yml
+    with:
+      matrix: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
+
+  integration-tests:
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      python-version: "3.13"
+
+  test-summary:
+    name: Publish test summary
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, integration-tests]
+    if: always()
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: test-results/
+          merge-multiple: true
+
+      - name: Publish test summary
+        run: .github/scripts/publish-test-summary.ps1
+
+  notify-discord:
+    name: Notify Discord on trusted PR failures
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, integration-tests, test-summary]
+    if: >-
+      ${{ always() && (
+        needs.lint.result == 'failure' ||
+        needs.unit-tests.result == 'failure' ||
+        needs.integration-tests.result == 'failure' ||
+        needs.test-summary.result == 'failure'
+      ) && github.event.pull_request.head.repo.full_name == github.repository }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Post failure notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MESSAGE: |
+            PR workflow failed.
+            Repository: ${{ github.repository }}
+            PR: #${{ github.event.pull_request.number }}
+            Branch: ${{ github.head_ref }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:DISCORD_WEBHOOK_URL)) { exit 0 }
+          Write-Output "::add-mask::$env:DISCORD_WEBHOOK_URL"
+          $payload = @{ content = $env:DISCORD_MESSAGE } | ConvertTo-Json -Compress
+          Invoke-RestMethod -Method Post -Uri $env:DISCORD_WEBHOOK_URL -ContentType 'application/json' -Body $payload | Out-Null
