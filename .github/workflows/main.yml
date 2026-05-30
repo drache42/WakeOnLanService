@@ -1,16 +1,17 @@
-name: Main
+name: Main Pipeline
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
-      - 'refs/tags/release/**'
-    tags:
-      - 'release/**'
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-pipeline
+  cancel-in-progress: false
 
 jobs:
   lint:
@@ -21,18 +22,218 @@ jobs:
   unit-tests:
     uses: ./.github/workflows/unit-tests.yml
     with:
-      matrix: |
-        ["3.9", "3.10", "3.11", "3.12", "3.13"]
+      matrix: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
 
   integration-tests:
     uses: ./.github/workflows/integration-tests.yml
     with:
       python-version: "3.13"
 
-  docker-publish:
+  test-summary:
+    name: Publish test summary
+    runs-on: ubuntu-latest
     needs: [lint, unit-tests, integration-tests]
-    if: startsWith(github.ref, 'refs/tags/release/')
-    uses: ./.github/workflows/docker-publish.yml
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    if: always()
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          path: test-results/
+          merge-multiple: true
+
+      - name: Publish test summary
+        run: .github/scripts/publish-test-summary.ps1
+
+  compute-version:
+    name: Compute next version
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, integration-tests]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: read
+      pull-requests: read
+    defaults:
+      run:
+        shell: pwsh
+    outputs:
+      version: ${{ steps.compute.outputs.version }}
+      skip: ${{ steps.compute.outputs.skip }}
+      short_sha: ${{ steps.compute.outputs.short_sha }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute version
+        id: compute
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/compute-version.ps1
+
+  publish-main-image:
+    name: Publish branch image
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, integration-tests, compute-version]
+    if: >-
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          needs.compute-version.result == 'success' }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Compute image names
+        id: image_names
+        run: |
+          $shortSha = $env:GITHUB_SHA.Substring(0, 7)
+          "image=drache42/wakeonlanservice" | Add-Content -Path $env:GITHUB_OUTPUT
+          "short_sha=$shortSha" | Add-Content -Path $env:GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            drache42/wakeonlanservice:main
+            drache42/wakeonlanservice:sha-${{ steps.image_names.outputs.short_sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          build-args: |
+            VERSION=${{ needs.compute-version.outputs.version }}
+          cache-from: type=gha,scope=app-image
+          cache-to: type=gha,mode=max,scope=app-image
+
+  auto-release:
+    name: Auto-release
+    runs-on: ubuntu-latest
+    needs: [compute-version, publish-main-image]
+    if: >-
+      ${{ github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          needs.compute-version.outputs.skip == 'false' &&
+          needs.publish-main-image.result == 'success' }}
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push release tag
+        env:
+          VERSION: ${{ needs.compute-version.outputs.version }}
+        run: |
+          if (git tag -l "v$env:VERSION") {
+            Write-Host "Tag v$env:VERSION already exists - skipping tag creation."
+          } else {
+            git tag -a "v$env:VERSION" HEAD -m "Release v$env:VERSION"
+            git push origin "v$env:VERSION"
+          }
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Promote Docker image to release tags
+        env:
+          VERSION: ${{ needs.compute-version.outputs.version }}
+          SHORT_SHA: ${{ needs.compute-version.outputs.short_sha }}
+        run: |
+          $majorMinor = ($env:VERSION -split '\.')[0..1] -join '.'
+          docker buildx imagetools create `
+            --tag "drache42/wakeonlanservice:$env:VERSION" `
+            --tag "drache42/wakeonlanservice:$majorMinor" `
+            --tag "drache42/wakeonlanservice:latest" `
+            "drache42/wakeonlanservice:sha-$env:SHORT_SHA"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.compute-version.outputs.version }}
+        run: |
+          gh release view "v$env:VERSION" *>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release v$env:VERSION already exists - skipping release creation."
+          } else {
+            gh release create "v$env:VERSION" `
+              --title "v$env:VERSION" `
+              --generate-notes `
+              --latest
+          }
+
+      - name: Notify Discord on release
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MESSAGE: |
+            Released v${{ needs.compute-version.outputs.version }}
+            Repository: ${{ github.repository }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: .github/scripts/notify-discord.ps1
+
+  notify-discord:
+    name: Notify Discord on failures
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, integration-tests, test-summary, compute-version, publish-main-image, auto-release]
+    if: >-
+      ${{ always() && (
+        needs.lint.result == 'failure' ||
+        needs.unit-tests.result == 'failure' ||
+        needs.integration-tests.result == 'failure' ||
+        needs.test-summary.result == 'failure' ||
+        needs.compute-version.result == 'failure' ||
+        needs.publish-main-image.result == 'failure' ||
+        needs.auto-release.result == 'failure'
+      ) }}
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Post failure notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MESSAGE: |
+            Main pipeline failed.
+            Repository: ${{ github.repository }}
+            Ref: ${{ github.ref_name }}
+            Event: ${{ github.event_name }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: .github/scripts/notify-discord.ps1

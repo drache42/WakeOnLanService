@@ -123,3 +123,16 @@ class TestHealthCheck:
         assert response.status_code == 200
         data = response.get_json()
         assert data["status"] == "healthy"
+
+class TestVersion:
+    def test_version_default(self, client, monkeypatch):
+        monkeypatch.delenv("APP_VERSION", raising=False)
+        response = client.get("/version")
+        assert response.status_code == 200
+        assert response.get_json() == {"version": "dev"}
+
+    def test_version_from_env(self, client, monkeypatch):
+        monkeypatch.setenv("APP_VERSION", "1.2.3")
+        response = client.get("/version")
+        assert response.status_code == 200
+        assert response.get_json() == {"version": "1.2.3"}
