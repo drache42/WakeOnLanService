@@ -291,18 +291,6 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
-name = "future"
-version = "1.0.0"
-description = "Clean single-source support for Python 3 and 2"
-optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-groups = ["dev"]
-files = [
-    {file = "future-1.0.0-py3-none-any.whl", hash = "sha256:929292d34f5872e70396626ef385ec22355a1fae8ad29e1a734c3e43f9fbc216"},
-    {file = "future-1.0.0.tar.gz", hash = "sha256:bd2968309307861edae1458a4f8a4f3598c03be43b97521076aebf5d94c07b05"},
-]
-
-[[package]]
 name = "gunicorn"
 version = "23.0.0"
 description = "WSGI HTTP Server for UNIX"
@@ -565,18 +553,17 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "virtualenv"]
 
 [[package]]
 name = "pytest-logger"
-version = "0.5.1"
+version = "1.1.1"
 description = "Plugin configuring handlers for loggers from Python logging module."
 optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
-    {file = "pytest-logger-0.5.1.tar.gz", hash = "sha256:45324dc1c946d6600dbaa259c2dc97b59d4ebd1d61394ef6c44ebdded1cb165b"},
-    {file = "pytest_logger-0.5.1-py2.py3-none-any.whl", hash = "sha256:0d174a40e1731817fb5c51b9844b7b4da366b33ee4c39d6e30e4165b74b99ac7"},
+    {file = "pytest-logger-1.1.1.tar.gz", hash = "sha256:82cb36b505a72e15a2f0e12c6451d8c21ecbe0379d322b2bed4f05cb7842c9d9"},
+    {file = "pytest_logger-1.1.1-py2.py3-none-any.whl", hash = "sha256:d9f7b88c04828de649a033779d30f359fce026fde37c1e91d83336a66d27a9fb"},
 ]
 
 [package.dependencies]
-future = "*"
 pytest = ">=3.2"
 
 [[package]]
@@ -943,4 +930,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "03fbc72fbab0a1cbd661752b4ee68f2b374492eb2a87bb30625854f5edcfe60c"
+content-hash = "95967aed10a5312cb9f20befeeb7e7a000e41a4ac4248e91d6dc496a6acfc4ba"
