@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Create test results directory
+        run: mkdir -p test-results
+
       - name: Run integration tests
         run: poetry run pytest tests/integration -v --log-cli-level=INFO --junitxml=test-results/integration.xml
 

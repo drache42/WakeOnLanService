@@ -215,6 +215,7 @@ jobs:
         needs.lint.result == 'failure' ||
         needs.unit-tests.result == 'failure' ||
         needs.integration-tests.result == 'failure' ||
+        needs.test-summary.result == 'failure' ||
         needs.compute-version.result == 'failure' ||
         needs.publish-main-image.result == 'failure' ||
         needs.auto-release.result == 'failure'

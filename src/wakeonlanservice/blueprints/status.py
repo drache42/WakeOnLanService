@@ -135,6 +135,12 @@ def healthcheck():
 
 @status_bp.route("/version")
 def version():
+    """
+    Returns the application version.
+
+    Returns:
+        Response: JSON response containing the current application version.
+    """
     return jsonify({"version": os.environ.get("APP_VERSION", "dev")})
 
 def validate_mac_address(mac_address: str) -> None:

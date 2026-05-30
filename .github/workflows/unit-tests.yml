@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Create test results directory
+        run: mkdir -p test-results
+
       - name: Run unit tests
         run: poetry run pytest tests/unit --junitxml=test-results/unit-py${{ matrix.python-version }}.xml
 

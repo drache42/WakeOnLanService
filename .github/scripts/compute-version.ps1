@@ -19,8 +19,9 @@ if (-not $latestTag) {
 Write-Host "Current version: $major.$minor.$patch (tagged at $taggedAt)"
 $shortSha = $env:GITHUB_SHA.Substring(0, 7)
 
-$allPRs    = gh pr list --repo $env:GITHUB_REPOSITORY --state merged --base main --limit 1000 --json number,labels,mergedAt | ConvertFrom-Json
-$mergedPRs = @($allPRs | Where-Object { $_.mergedAt -ne $null -and $_.mergedAt -gt $taggedAt })
+$taggedAtDto = [DateTimeOffset]::Parse($taggedAt)
+$allPRs      = gh pr list --repo $env:GITHUB_REPOSITORY --state merged --base main --limit 1000 --json number,labels,mergedAt | ConvertFrom-Json
+$mergedPRs   = @($allPRs | Where-Object { $_.mergedAt -ne $null -and [DateTimeOffset]::Parse($_.mergedAt) -gt $taggedAtDto })
 
 $prCount = $mergedPRs.Count
 Write-Host "PRs merged since last tag: $prCount"
