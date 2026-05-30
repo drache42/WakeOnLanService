@@ -133,6 +133,10 @@ def healthcheck():
     """
     return jsonify({"status": "healthy"})
 
+@status_bp.route("/version")
+def version():
+    return jsonify({"version": os.environ.get("APP_VERSION", "dev")})
+
 def validate_mac_address(mac_address: str) -> None:
     """
     Validate the MAC address.

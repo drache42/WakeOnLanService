@@ -1,0 +1,14 @@
+changelog:
+  exclude:
+    labels:
+      - skip-release
+  categories:
+    - title: Breaking Changes
+      labels:
+        - "semver: major"
+    - title: New Features
+      labels:
+        - "semver: minor"
+    - title: Bug Fixes & Maintenance
+      labels:
+        - "semver: patch"

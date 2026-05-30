@@ -19,6 +19,9 @@ COPY src/ /app/
 # Stage 2: Production stage
 FROM python:3.13-alpine
 
+ARG VERSION=dev
+ENV APP_VERSION=$VERSION
+
 # Set the working directory
 WORKDIR /app
 

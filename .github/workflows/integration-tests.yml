@@ -28,5 +28,13 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Run unit tests
-        run: poetry run pytest tests/integration -v --log-cli-level=INFO
+      - name: Run integration tests
+        run: poetry run pytest tests/integration -v --log-cli-level=INFO --junitxml=test-results/integration.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-integration
+          path: test-results/
+          if-no-files-found: warn
