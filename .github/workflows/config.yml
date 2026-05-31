@@ -1,0 +1,24 @@
+name: Configuration
+
+on:
+  workflow_call:
+    outputs:
+      python-version:
+        description: "The Python version to use for single-version jobs"
+        value: ${{ jobs.config.outputs.python-version }}
+      python-matrix:
+        description: "The Python version matrix to use for unit tests"
+        value: ${{ jobs.config.outputs.python-matrix }}
+
+jobs:
+  config:
+    name: Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      python-version: ${{ steps.set.outputs.python-version }}
+      python-matrix: ${{ steps.set.outputs.python-matrix }}
+    steps:
+      - id: set
+        run: |
+          echo "python-version=3.14" >> "$GITHUB_OUTPUT"
+          echo 'python-matrix=["3.10", "3.11", "3.12", "3.13", "3.14"]' >> "$GITHUB_OUTPUT"
