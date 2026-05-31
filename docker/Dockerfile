@@ -1,5 +1,6 @@
 # Stage 1: Build stage
-FROM python:3.14-alpine AS builder
+ARG PYTHON_VERSION=3.14
+FROM python:${PYTHON_VERSION}-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -17,8 +18,10 @@ RUN poetry config virtualenvs.create false && poetry install --no-interaction --
 COPY src/ /app/
 
 # Stage 2: Production stage
-FROM python:3.14-alpine
+ARG PYTHON_VERSION=3.14
+FROM python:${PYTHON_VERSION}-alpine
 
+ARG PYTHON_VERSION=3.14
 ARG VERSION=dev
 ENV APP_VERSION=$VERSION
 
@@ -29,7 +32,7 @@ WORKDIR /app
 RUN apk add --no-cache curl
 
 # Copy the installed packages from the builder stage
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=builder /usr/local/lib/python${PYTHON_VERSION}/site-packages /usr/local/lib/python${PYTHON_VERSION}/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy the application code from the builder stage
