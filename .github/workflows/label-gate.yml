@@ -23,6 +23,16 @@ jobs:
   label-gate:
     name: label-gate
     runs-on: ubuntu-latest
+    # For 'labeled' events, only run when a semver label was added or removed.
+    # Non-semver labels (e.g. 'dependencies', 'python') added by Dependabot at
+    # PR creation would otherwise fire before Classify PR has applied the semver
+    # label, causing a spurious failure.  'unlabeled' and 'reopened' always run
+    # because they may remove a semver label or need to re-validate.
+    if: |
+      github.event_name == 'workflow_run' ||
+      github.event.action == 'unlabeled' ||
+      github.event.action == 'reopened' ||
+      (github.event.action == 'labeled' && startsWith(github.event.label.name, 'semver:'))
     steps:
       - name: Check semver label
         uses: actions/github-script@v9
