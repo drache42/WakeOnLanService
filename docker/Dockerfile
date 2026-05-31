@@ -18,7 +18,6 @@ RUN poetry config virtualenvs.create false && poetry install --no-interaction --
 COPY src/ /app/
 
 # Stage 2: Production stage
-ARG PYTHON_TAG=3.14
 FROM python:${PYTHON_TAG}-alpine
 
 ARG PYTHON_TAG

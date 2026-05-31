@@ -15,7 +15,10 @@ jobs:
     name: Configuration
     runs-on: ubuntu-latest
     outputs:
-      python-version: "3.14"
-      python-matrix: '["3.10", "3.11", "3.12", "3.13", "3.14"]'
+      python-version: ${{ steps.set.outputs.python-version }}
+      python-matrix: ${{ steps.set.outputs.python-matrix }}
     steps:
-      - run: echo "Configuration loaded"
+      - id: set
+        run: |
+          echo "python-version=3.14" >> "$GITHUB_OUTPUT"
+          echo 'python-matrix=["3.10", "3.11", "3.12", "3.13", "3.14"]' >> "$GITHUB_OUTPUT"
