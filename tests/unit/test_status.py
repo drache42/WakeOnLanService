@@ -3,7 +3,7 @@ import requests
 from wakeonlanservice import create_app
 from wakeonlanservice.blueprints.status import check_url_status
 import os
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 @pytest.fixture
 def app(scope="function"):
@@ -82,10 +82,31 @@ class TestCheckUrl:
                 
                 # Check URL
                 response = client.get("/check_url")
-                assert response.status_code == 200
-                data = response.get_json()
-                assert data["status"] == "available"
+                assert response.status_code == 302  # 302 is redirect
+                assert response.location == "http://example.com"  # Should redirect to the URL
+
+    def test_check_url_available_after_attempt(self, monkeypatch, client):
+        """Test case where URL becomes available after initial check"""
+        # Set up mocking so the first check returns False and second check returns True
+        check_mock = MagicMock()
+        check_mock.side_effect = [False, False, True]  # Initial check, first attempt check, second attempt check
+        
+        with patch("wakeonlanservice.blueprints.status.check_url_status", check_mock):
+            with patch("wakeonlanservice.blueprints.status.send_magic_packet"):
+                # Initialize session
+                client.get("/")
+                
+                # First check - URL unavailable
+                response1 = client.get("/check_url")
+                assert response1.status_code == 200
+                data = response1.get_json()
+                assert data["status"] == "unavailable"
                 assert data["attempts"] == 1
+                
+                # Second check - URL becomes available, should redirect
+                response2 = client.get("/check_url")
+                assert response2.status_code == 302
+                assert response2.location == "http://example.com"
 
     def test_check_url_unavailable(self, monkeypatch, client):
         with patch("wakeonlanservice.blueprints.status.check_url_status", return_value=False):

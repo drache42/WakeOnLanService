@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, current_app, request, render_template, session
+from flask import Blueprint, Response, jsonify, current_app, request, render_template, session, redirect
 from wakeonlan import send_magic_packet
 import logging
 import os
@@ -10,7 +10,7 @@ import warnings
 status_bp = Blueprint("status", __name__)
 
 @status_bp.before_app_request
-def log_request_info():
+def log_request_info() -> None:
     """
     Logs information about each incoming request.
     This function is executed before each request is processed.
@@ -20,27 +20,32 @@ def log_request_info():
     logger.info(f"Received {request.method} request for {request.url}")
 
 @status_bp.route("/")
-def index():
+def index() -> str:
     """
     Index route that resets the attempt counter and renders the loading page.
     
     Returns:
         str: Rendered HTML template for the loading page.
     """
-    # Initialize or reset the session-specific attempts counter
+    # Initialize or reset the session-specific attempts counter.
+    # Reloading the index page reset the session attempts to 0. This is expected behavior.
     session["attempts"] = 0
     
+    # Short circuit if already available
+    check_url()
+
     return render_template("loading.html", attempts=session.get("attempts", 0))
 
 @status_bp.route("/check_url")
-def check_url():
+def check_url() -> Response:
     """
     Endpoint to check the status of the URL.
     Increments the attempt counter and checks the URL status.
     If not in debug mode, sends a magic packet to the MAC address.
     
     Returns:
-        Response: JSON response with the status, number of attempts, and the URL.
+        Response: JSON response with the status, number of attempts, and the URL,
+                 or a redirect to the URL if it's available.
     
     Status can be:
     - "available": The URL is reachable.
@@ -52,7 +57,7 @@ def check_url():
     # Get MAC address and URL from environment variables
     mac_address = os.getenv("MAC_ADDRESS")
     url = os.getenv("URL")
-    
+
     # Initialize attempts if not present in session
     if "attempts" not in session:
         session["attempts"] = 0
@@ -86,7 +91,7 @@ def check_url():
             "url": url
         })
 
-def check_url_status(url):
+def check_url_status(url) -> bool:
     """
     Helper function to check if the URL is reachable.
     
@@ -116,7 +121,7 @@ def check_url_status(url):
     return False
 
 @status_bp.route("/debug-status")
-def debug_status():
+def debug_status()-> str:
     """
     Route to check the debug status of the application.
     Returns a string indicating whether the app and environment variable debug modes are on or off.
@@ -124,7 +129,7 @@ def debug_status():
     return f"App debug mode is {'on' if current_app.debug else 'off'}"
 
 @status_bp.route("/healthcheck")
-def healthcheck():
+def healthcheck() -> Response:
     """
     Health check endpoint to verify that the application is running.
     
