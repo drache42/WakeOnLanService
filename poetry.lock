@@ -685,14 +685,14 @@ files = [
 
 [[package]]
 name = "testcontainers"
-version = "4.13.0"
+version = "4.14.2"
 description = "Python library for throwaway instances of anything that can run in a Docker container"
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "testcontainers-4.13.0-py3-none-any.whl", hash = "sha256:784292e0a3f3a4588fbbf5d6649adda81fea5fd61ad3dc73f50a7a903904aade"},
-    {file = "testcontainers-4.13.0.tar.gz", hash = "sha256:ee2bc39324eeeeb710be779208ae070c8373fa9058861859203f536844b0f412"},
+    {file = "testcontainers-4.14.2-py3-none-any.whl", hash = "sha256:0d0522c3cd8f8d9627cda41f7a6b51b639fa57bdc492923c045117933c668d68"},
+    {file = "testcontainers-4.14.2.tar.gz", hash = "sha256:1340ccf16fe3acd9389a6c9e1d9ab21d9fe99a8afdf8165f89c3e69c1967d239"},
 ]
 
 [package.dependencies]
@@ -703,40 +703,40 @@ urllib3 = "*"
 wrapt = "*"
 
 [package.extras]
-arangodb = ["python-arango (>=7.8,<8.0)"]
-aws = ["boto3", "httpx"]
-azurite = ["azure-storage-blob (>=12.19,<13.0)"]
-chroma = ["chromadb-client (>=1.0.0,<2.0.0)"]
+arangodb = ["python-arango (>=8)"]
+aws = ["boto3 (>=1)", "httpx"]
+azurite = ["azure-storage-blob (>=12)"]
+chroma = ["chromadb-client (>=1)"]
 clickhouse = ["clickhouse-driver"]
-cosmosdb = ["azure-cosmos"]
-db2 = ["ibm_db_sa ; platform_machine != \"aarch64\" and platform_machine != \"arm64\"", "sqlalchemy"]
-generic = ["httpx", "redis"]
+cosmosdb = ["azure-cosmos (>=4)"]
+db2 = ["ibm-db-sa ; platform_machine != \"aarch64\" and platform_machine != \"arm64\"", "sqlalchemy (>=2)"]
+generic = ["httpx", "redis (>=7)"]
 google = ["google-cloud-datastore (>=2)", "google-cloud-pubsub (>=2)"]
-influxdb = ["influxdb", "influxdb-client"]
-k3s = ["kubernetes", "pyyaml"]
-keycloak = ["python-keycloak"]
-localstack = ["boto3"]
+influxdb = ["influxdb (>=5)", "influxdb-client (>=1)"]
+k3s = ["kubernetes", "pyyaml (>=6.0.3)"]
+keycloak = ["python-keycloak (>=6) ; python_version < \"4.0\""]
+localstack = ["boto3 (>=1)"]
 mailpit = ["cryptography"]
-minio = ["minio"]
-mongodb = ["pymongo"]
-mssql = ["pymssql ; platform_machine != \"arm64\" or python_version >= \"3.10\"", "sqlalchemy"]
-mysql = ["pymysql[rsa]", "sqlalchemy"]
-nats = ["nats-py"]
-neo4j = ["neo4j"]
-openfga = ["openfga-sdk ; python_version >= \"3.10\""]
-opensearch = ["opensearch-py"]
-oracle = ["oracledb", "sqlalchemy"]
-oracle-free = ["oracledb", "sqlalchemy"]
-qdrant = ["qdrant-client"]
-rabbitmq = ["pika"]
-redis = ["redis"]
-registry = ["bcrypt"]
-scylla = ["cassandra-driver (==3.29.1)"]
-selenium = ["selenium"]
+minio = ["minio (>=7)"]
+mongodb = ["pymongo (>=4)"]
+mssql = ["pymssql (>=2)", "sqlalchemy (>=2)"]
+mysql = ["pymysql[rsa] (>=1)", "sqlalchemy (>=2)"]
+nats = ["nats-py (>=2)"]
+neo4j = ["neo4j (>=6)"]
+openfga = ["openfga-sdk"]
+opensearch = ["opensearch-py (>=3) ; python_version < \"4.0\""]
+oracle = ["oracledb (>=3)", "sqlalchemy (>=2)"]
+oracle-free = ["oracledb (>=3)", "sqlalchemy (>=2)"]
+qdrant = ["qdrant-client (>=1)"]
+rabbitmq = ["pika (>=1)"]
+redis = ["redis (>=7)"]
+registry = ["bcrypt (>=5)"]
+scylla = ["cassandra-driver (>=3)"]
+selenium = ["selenium (>=4)"]
 sftp = ["cryptography"]
 test-module-import = ["httpx"]
 trino = ["trino"]
-weaviate = ["weaviate-client (>=4.5.4,<5.0.0)"]
+weaviate = ["weaviate-client (>=4)"]
 
 [[package]]
 name = "tomli"
@@ -933,4 +933,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "4e479485bb4812d26c7568393064892c08f2cb3a30ac92666163a7a3cc11343b"
+content-hash = "c7367ae3c9bcba8ceb1e49758481722648af6bc6b9cdde5076eee6c954216a6e"

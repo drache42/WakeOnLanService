@@ -24,7 +24,7 @@ ruff = "^0.15.15"
 python-dotenv = "^1.2.1"
 pytest-cov = "^7.1.0"
 docker = "^7.1.0"
-testcontainers = "^4.13.0"
+testcontainers = "^4.14.2"
 pytest-logger = "^1.1.1"
 
 [tool.poetry.group.production.dependencies]
@@ -35,10 +35,7 @@ package-mode = false
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
-filterwarnings = [
-    "error",
-    "ignore::DeprecationWarning:testcontainers",
-]
+filterwarnings = ["error"]
 log_cli = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
