@@ -21,7 +21,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
 ruff = "^0.15.15"
-python-dotenv = "^1.2.1"
+python-dotenv = "^1.2.2"
 pytest-cov = "^7.1.0"
 docker = "^7.1.0"
 testcontainers = "^4.14.2"
