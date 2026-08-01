@@ -9,9 +9,17 @@ on:
 
 jobs:
   test:
-    name: Integration tests
-    runs-on: ubuntu-latest
-    
+    name: Integration tests (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -38,6 +46,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: test-results-integration
+          name: test-results-integration-${{ matrix.arch }}
           path: test-results/
           if-no-files-found: warn
