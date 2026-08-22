@@ -28,7 +28,7 @@ testcontainers = "^4.15.0"
 pytest-logger = "^1.1.1"
 
 [tool.poetry.group.production.dependencies]
-gunicorn = "^23.0.0"
+gunicorn = "^26.1.0"
 
 [tool.poetry]
 package-mode = false
