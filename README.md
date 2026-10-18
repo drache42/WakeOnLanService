@@ -1,6 +1,6 @@
 # WakeOnLanService
 
-![Test Status](https://github.com/drache42/WakeOnLanService/actions/workflows/unit-tests.yml/badge.svg?branch=main)
+![Test Status](https://github.com/FroeFam/WakeOnLanService/actions/workflows/main.yml/badge.svg?branch=main)
 
 ## Development Instructions
 

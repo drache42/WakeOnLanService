@@ -11,26 +11,12 @@ on:
       - ready_for_review
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
 
 jobs:
   automerge:
-    name: Enable auto-merge for eligible Dependabot PRs
-    runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
-
-    steps:
-      - name: Fetch Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable auto-merge
-        if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor' }}
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --auto --merge "$env:PR_URL"
+    uses: FroeFam/ci-pipeline/.github/workflows/automerge.yml@v1
+    with:
+      automerge-client-id: ${{ vars.AUTOMERGE_APP_CLIENT_ID }}
+    secrets: inherit
